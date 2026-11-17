@@ -1,80 +1,520 @@
-# European Football Intelligence
 
-SQL analytics portfolio | PostgreSQL · DBeaver · Window Functions · CTEs · PL/pgSQL
+# ⚽ European Football Intelligence
 
-## Overview
+### Exploring European Football Through PostgreSQL, Statistical Analysis & Elo Ratings
 
-Exploratory and hypothesis-driven analysis of the European Soccer Database (2008–2016), spanning 11 European leagues. Topics include league performance, home advantage, player ratings, chronological Elo modelling, tactical attributes, and the **Leicester Paradox**: whether late-season form contains a signal of next-season improvement.
+A SQL-based football analytics project examining European leagues, team performance, player development, unexpected match results, tactical characteristics, and historical performance trends.
 
-This repository reorganizes the author's original exploratory SQL script. The original, unmodified file is retained as `original_backup.sql` for traceability.
+The project uses the **European Soccer Database (2008–2016)** to investigate football through structured data analysis, advanced SQL queries, and an Elo rating model.
 
-## Research highlights
+---
 
-- **Leicester City (2014/15):** last-ten minus first-ten points per match (PPM) = **+1.30**. Ranked **4th of 131** eligible incumbent teams in a 2014/15-only candidate ranking.
-- **Historical association:** the top momentum quintile had **9.81%** next-season large improvements (defined as ΔPPM ≥ 0.5) versus **1.86%** in the bottom quintile (1,074 consecutive team-season pairs). This is an association, not causal proof.
-- **2015/16 diagnostic comparison:** among **106** incumbent teams with eligible results in both seasons, a momentum ranking found **2 of 4** breakthroughs in its top ten (Precision@10 = **20%**, Recall@10 = **50%**); a previous-season PPM ranking found **0 of 4**. The original pre-season list included **131** teams, of which **25** lacked an eligible next-season same-league record.
-- The exercise **does not establish that Leicester's league title could have been predicted**. The evaluated outcome is a large improvement in PPM, not a championship; the analysis is retrospective, and the 2015/16 comparison is small and survivor-selected.
+## 📌 Project Overview
 
-Numbers above come from the author's previously executed SQL results; they have **not been independently rerun** in this packaged environment.
+| Category | Details |
+|---|---|
+| Project | European Football Intelligence |
+| Database | European Soccer Database |
+| Period | 2008–2016 |
+| Coverage | 11 European leagues |
+| Matches | 25,979 |
+| Database Management System | PostgreSQL |
+| SQL Environment | DBeaver |
+| Main Language | SQL / PL/pgSQL |
+| Analytical Modules | 6 |
+| Numbered SQL Blocks | 53 |
+| Main Research Topic | Leicester Paradox & Hidden Momentum |
 
-## Repository structure
+### Research Objectives
 
-```text
-sql/
-  01_setup_and_validation.sql       # Keys, integrity checks, timestamp verification
-  02_league_and_team_analysis.sql   # Home advantage, standings, data completeness
-  03_player_analysis.sql            # Player ratings, development, Messi/Ronaldo
-  04_elo_and_upsets.sql             # Chronological Elo and giant-killer metrics
-  05_tactical_intelligence.sql      # Tactical attributes and as-of analysis
-  06_leicester_paradox.sql          # Momentum hypothesis and ranking comparisons
-docs/
-  methodology.md
-  audit_notes.md
-original_backup.sql                 # Original source; do not execute blindly
+This project aims to:
+
+1. Compare football performance across European leagues.
+2. Investigate home advantage and team consistency.
+3. Explore player development and historical FIFA ratings.
+4. Identify unexpected results using an Elo rating model.
+5. Examine whether tactical characteristics are associated with performance.
+6. Investigate Leicester City's remarkable improvement and the potential relationship between late-season momentum and subsequent performance.
+
+---
+
+## 📑 Table of Contents
+
+- [Key Findings](#-key-findings)
+- [Home Advantage](#-home-advantage)
+- [Team Dominance](#-team-dominance)
+- [Player Intelligence](#-player-intelligence)
+- [Elo Upsets](#-elo-upsets)
+- [Giant Killer Index](#-giant-killer-index)
+- [Leicester Paradox](#-leicester-paradox)
+- [SQL Skills Demonstrated](#-sql-skills-demonstrated)
+- [Repository Structure](#-repository-structure)
+- [Dataset and Setup](#-dataset-and-setup)
+- [Methodology and Limitations](#-methodology-and-limitations)
+- [Conclusion](#-conclusion)
+
+---
+
+## 🏆 Key Findings
+
+The following results were obtained from the author's PostgreSQL queries.
+
+| Analysis | Main Finding | SQL Block |
+|---|---|---|
+| Home Advantage | Spain recorded a 48.85% home win rate | #17 |
+| Team Dominance | FC Barcelona averaged 2.45 points per game | #21 |
+| Messi vs Ronaldo | Messi's average FIFA rating exceeded Ronaldo's from 2009 through 2015 | #33 |
+| Early Elite Players | Messi and Cesc Fàbregas had recorded 85+ ratings at age 19 | Player Analysis |
+| Biggest Elo Upset | Tondela defeated FC Porto 1–0 in April 2016 | #39 |
+| Giant Killer Index | Manchester City led average Elo overperformance at +0.191 | #41 |
+| Leicester Paradox | Leicester improved from 1.079 to 2.132 points per game | #45 |
+| Hidden Momentum | Leicester's final-ten PPM exceeded its first-ten PPM by 1.30 in 2014/15 | #46 |
+
+These findings are descriptive results from the historical dataset and should not be interpreted as proof of causation.
+
+---
+
+## 🏟 Home Advantage
+
+**Research question:** Does playing at home provide a measurable advantage across European leagues?
+
+### Selected Results
+
+| League | Home Win Rate |
+|---|---:|
+| Spain — Liga BBVA | 48.85% |
+| Netherlands — Eredivisie | 47.83% |
+| Italy — Serie A | 46.64% |
+| England — Premier League | 45.72% |
+| Germany — Bundesliga | 45.22% |
+| France — Ligue 1 | 44.70% |
+| Scotland — Premier League | 41.67% |
+
+### Interpretation
+
+- Spain had the highest home win percentage among the 11 leagues.
+- Scotland recorded the lowest home win percentage.
+- The difference between Spain and Scotland was **7.18 percentage points**.
+- Home wins were more frequent than away wins in every league examined.
+
+**SQL techniques:** `JOIN`, `GROUP BY`, `COUNT`, `CASE`, `ROUND`, `ORDER BY`.
+
+---
+
+## 🥇 Team Dominance
+
+**Research question:** Which European clubs demonstrated the strongest overall league performance?
+
+Teams were compared using points per game (PPG), calculated as:
+
+**PPG = Total Points / Matches Played**
+
+A win awards three points, a draw one point, and a loss zero points.
+
+### Top Teams
+
+| Rank | Team | Points per Game |
+|---|---|---:|
+| 1 | FC Barcelona | 2.45 |
+| 2 | FC Porto | 2.38 |
+| 3 | SL Benfica | 2.38 |
+| 4 | Real Madrid CF | 2.37 |
+| 5 | Celtic | 2.32 |
+
+FC Barcelona achieved the highest points-per-game average in this analysis.
+
+The project also examines consistency by calculating the standard deviation of seasonal performance.
+
+**SQL techniques:** `UNION ALL`, `GROUP BY`, `SUM`, `COUNT`, `STDDEV_SAMP`, `HAVING`.
+
+---
+
+## 🌟 Player Intelligence
+
+### Messi vs Ronaldo: FIFA Rating Evolution
+
+This analysis compares the historical average overall ratings recorded in the dataset.
+
+| Year | Lionel Messi | Cristiano Ronaldo |
+|---|---:|---:|
+| 2007 | 85.50 | 89.00 |
+| 2008 | 90.00 | 91.00 |
+| 2009 | 90.00 | 89.50 |
+| 2010 | 90.00 | 89.00 |
+| 2011 | 92.00 | 90.50 |
+| 2012 | 94.00 | 92.00 |
+| 2013 | 94.00 | 92.00 |
+| 2014 | 93.33 | 92.00 |
+| 2015 | 93.43 | 92.60 |
+
+### Main Observations
+
+- Ronaldo had the higher average rating in 2007 and 2008.
+- Messi had the higher average rating from 2009 through 2015.
+- Messi's largest advantage in this comparison was 2.00 rating points in 2012 and 2013.
+
+These are historical FIFA-based database ratings, not direct measures of real-world football ability.
+
+### Youngest Players at Their First Recorded 85+ Rating
+
+| Player | Age | First Recorded Rating |
+|---|---:|---:|
+| Lionel Messi | 19 | 85 |
+| Cesc Fàbregas | 19 | 85 |
+| Karim Benzema | 20 | 85 |
+| Eden Hazard | 20 | 85 |
+| Neymar | 20 | 85 |
+| Wayne Rooney | 21 | 93 |
+| Cristiano Ronaldo | 22 | 87 |
+
+This analysis uses the following window function:
+
+```sql
+ROW_NUMBER() OVER (
+    PARTITION BY p.player_api_id
+    ORDER BY pa.date ASC, pa.id ASC
+)
 ```
 
-## Dataset source and download instructions
+The function identifies the earliest available record for each player with an overall rating of at least 85.
 
-- **Dataset:** [European Soccer Database on Kaggle](https://www.kaggle.com/datasets/hugomathien/soccer)
-- **Dataset publisher:** Hugo Mathien (Kaggle username `hugomathien`).
-- **Coverage:** 11 European leagues, seasons 2008–2016, with match results, teams, players, player/team attributes and other fields.
-- **Attribution:** The football data was collected and assembled by the dataset publisher from multiple original sources. See the Kaggle dataset description for provenance, licensing and usage restrictions. This repository contains analytical SQL, **not** the original dataset.
+**Important:** The result represents the first qualifying record available in the database, not necessarily the first time the player achieved that rating in their career.
 
-To obtain the data:
+---
 
-1. Open the [Kaggle dataset page](https://www.kaggle.com/datasets/hugomathien/soccer).
-2. Sign in to Kaggle if prompted, then use the **Download** option.
-3. Extract the downloaded archive. The published dataset includes a SQLite database (`database.sqlite`), **not** a ready-to-import PostgreSQL dump.
-4. Convert/import the SQLite tables into PostgreSQL using a migration tool or a verified export/import workflow. Ensure the resulting PostgreSQL tables use the lowercase names `country`, `league`, `team`, `player`, `matches`, `player_attributes`, and `team_attributes` in the `public` schema. In particular, the source SQLite `Match` table is expected as `matches` by this project.
-5. Check the resulting column types, keys and row counts before executing the SQL. See the validation module for checks. This repository does not include an automated SQLite-to-PostgreSQL migration script; conversion details depend on the import method.
+## ⚡ Elo Upsets
 
-The dataset publisher credits external sources for match information, betting odds and FIFA-based player/team attributes. Respect the original data providers' rights and the usage terms listed on Kaggle.
+**Research question:** Which match results were most surprising relative to the teams' pre-match Elo ratings?
 
-## Getting started and safe execution order
+The project implements a chronological Elo rating model to estimate the expected score for each team before a match.
 
-**Requirements:** PostgreSQL and the imported European Soccer Database, with the tables `country`, `league`, `team`, `player`, `matches`, `player_attributes`, and `team_attributes` in schema `public`. The SQL is organized into numbered blocks (#01–#53). This repository is **not** a single-click deployment script.
+### Selected Unexpected Results
 
-1. **Back up the database** before executing any DDL or PL/pgSQL. In DBeaver, explicitly select the intended PostgreSQL connection and database.
-2. **`sql/01_setup_and_validation.sql` (#01–#14):** inspect existing primary keys, foreign keys and date types first. Some blocks create constraints. Do not run the entire file without reviewing the commands. The date checks in this curated version expect timestamp columns.
-3. **`sql/02_league_and_team_analysis.sql` (#15–#28):** run individual analytical SELECT statements to examine leagues, team performance and home advantage.
-4. **`sql/03_player_analysis.sql` (#29–#36):** run individual SELECT statements for player analysis.
-5. **`sql/04_elo_and_upsets.sql` (#37–#41):** block #38 creates Elo tables with `CREATE TABLE IF NOT EXISTS` and runs a chronological PL/pgSQL calculation. When a nonempty Elo history already exists with the expected row count, the calculation is skipped; a partial history raises an exception. **This is not a complete freshness check:** source data changes can invalidate existing results even if row counts match. Blocks #39–#41 depend on Elo outputs. Never uncomment the DROP statements without planning a deliberate rebuild.
-6. **`sql/05_tactical_intelligence.sql` (#42–#44):** block #42 creates or replaces a view. Review its dependencies and existing view definition before executing; the following queries depend on the view and/or Elo outputs.
-7. **`sql/06_leicester_paradox.sql` (#45–#53):** run the retrospective momentum analyses individually, reviewing the season filters and research limitations.
+| Date | Underdog | Opponent | Result | Expected Elo Score |
+|---|---|---|---|---:|
+| 2016-04-04 | Tondela | FC Porto | 1–0 | 0.0706 |
+| 2015-12-19 | Motherwell | Celtic | 2–1 | 0.0839 |
+| 2011-12-31 | Blackburn Rovers | Manchester United | 3–2 | 0.0959 |
 
-**For a live presentation:** use a connected DBeaver SQL editor, select one analytical `SELECT` at a time, and execute with `Ctrl+Enter`. Avoid running all six files as a single script. The 49-query batch `EXPLAIN` check passed in the author's database, and the corrected #40 and #41 statements were subsequently reported to execute successfully in DBeaver. `EXPLAIN` checks planning rather than complete execution or the accuracy of all results. Structural and Elo tests also passed in that environment; they are not substitutes for an end-to-end rebuild.
+All three underdogs won away from home.
 
-**Original source:** `original_backup.sql` is kept unchanged for traceability; do not run it wholesale against an already initialized database.
+### How Surprise Is Measured
 
-## Methods
+```text
+Surprise Score = Actual Elo Score - Expected Elo Score
+```
 
-- **PPM:** total league points divided by matches played (3 for a win, 1 for a draw).
-- **Momentum:** PPM in the last 10 league matches minus PPM in the first 10 matches of the same season.
-- **Breakthrough:** next-season PPM − current-season PPM ≥ 0.5, for teams with eligible records in both seasons.
-- **Elo:** sequential updates with starting rating 1500, K = 20 and home advantage = 65 Elo points; these are modelling choices, not calibrated optimal parameters.
+In this model:
 
-See [methodology](docs/methodology.md) and [audit notes](docs/audit_notes.md) for limitations and reproducibility caveats.
+- Win = 1.0
+- Draw = 0.5
+- Loss = 0.0
 
-## Status
+**Important:** Elo expected score is not the same as the probability of winning in a three-outcome football match.
 
-Organized for portfolio review. In the author’s existing PostgreSQL database, 49 analytical statements passed a batch planning check, separate structural/Elo checks reported no tested violations, and corrected blocks #40–#41 were reported to run successfully. This does **not** establish that all blocks execute end-to-end on a fresh database, nor does it independently verify every analytical conclusion. A clean-database reproducibility run remains outstanding.
+### Elo Model Parameters
+
+| Parameter | Value |
+|---|---:|
+| Initial Elo Rating | 1500 |
+| K-Factor | 20 |
+| Home Advantage | 65 Elo points |
+
+These parameters are modelling assumptions rather than universally optimal values.
+
+---
+
+## 🦁 Giant Killer Index
+
+**Research question:** Which teams consistently performed better than expected when facing stronger opponents?
+
+A team is classified as an underdog when its opponent has an effective Elo advantage of at least 100 points.
+
+Only teams with at least 20 qualifying underdog matches are included.
+
+### Selected Results
+
+| Team | Underdog Matches | Expected Score | Actual Score | Avg. Overperformance |
+|---|---:|---:|---:|---:|
+| Manchester City | 28 | 0.380 | 0.571 | +0.191 |
+| Liverpool | 49 | 0.379 | 0.541 | +0.162 |
+| P. Warszawa | 34 | 0.393 | 0.529 | +0.136 |
+| Pogoń Szczecin | 33 | 0.374 | 0.500 | +0.126 |
+| Stade de Reims | 76 | 0.346 | 0.467 | +0.121 |
+| Inter | 34 | 0.363 | 0.471 | +0.108 |
+
+### Interpretation
+
+Manchester City recorded the highest average overperformance among the qualifying teams.
+
+However, Stade de Reims accumulated **+9.18 total Elo score units above expectation**, the highest total among the displayed top 20 teams.
+
+This illustrates the distinction between average performance and cumulative performance across a different number of matches.
+
+### Calculation
+
+```text
+Match Overperformance = Actual Score - Expected Score
+
+Average Overperformance =
+    SUM(Match Overperformance) / Underdog Matches
+```
+
+**SQL techniques:** `CTE`, `UNION ALL`, `GROUP BY`, `HAVING`, `AVG`, `SUM`, `JOIN`.
+
+---
+
+## 🏆 Leicester Paradox
+
+### From 14th Place to Premier League Champions
+
+One of the central research topics of this project is Leicester City's transformation between the 2014/15 and 2015/16 seasons.
+
+| Metric | 2014/15 | 2015/16 |
+|---|---:|---:|
+| League Position | 14th | 1st |
+| Matches | 38 | 38 |
+| Points per Game | 1.079 | 2.132 |
+
+### Performance Improvement
+
+```text
+Absolute PPG Improvement = 2.132 - 1.079
+                         = 1.053
+
+Relative PPG Improvement = (1.053 / 1.079) × 100
+                         ≈ 97.6%
+```
+
+Leicester's points-per-game average almost doubled between the two seasons.
+
+### Hidden Momentum: The Season Before the Title
+
+The analysis also examines whether Leicester had already demonstrated improving form during 2014/15.
+
+| 2014/15 Period | Points per Game | Goal Difference |
+|---|---:|---:|
+| First 10 Matches | 0.90 | -5 |
+| Last 10 Matches | 2.20 | +11 |
+| Change | +1.30 | +16 |
+
+Leicester's final ten matches of 2014/15 showed substantially stronger performance than its opening ten matches.
+
+### Broader Historical Comparison
+
+The project extends this analysis to consecutive team-season pairs.
+
+| Metric | Result |
+|---|---:|
+| Consecutive Team-Season Pairs | 1,074 |
+| Large Improvement Rate — Top Momentum Quintile | 9.81% |
+| Large Improvement Rate — Bottom Momentum Quintile | 1.86% |
+| Breakthrough Definition | Next-season PPG increase ≥ 0.5 |
+
+In the retrospective 2015/16 diagnostic comparison, the momentum ranking identified 2 of 4 qualifying breakthroughs within its top ten, compared with 0 of 4 for the previous-season PPG ranking.
+
+These results suggest a historical association between late-season momentum and subsequent improvement.
+
+However, they do **not** establish that Leicester's championship was predictable. The analysis is retrospective, the outcome is a large PPG improvement rather than a league title, and the diagnostic comparison involves a small, selected sample.
+
+---
+
+## 💻 SQL Skills Demonstrated
+
+This project demonstrates practical application of SQL concepts across data validation, aggregation, relational analysis, and analytical modelling.
+
+| SQL Concept | Application |
+|---|---|
+| `SELECT`, `WHERE` | Data retrieval and filtering |
+| `ORDER BY`, `LIMIT` | Ranking teams and players |
+| `DISTINCT` | Unique-value analysis |
+| `JOIN`, `LEFT JOIN` | Combining relational tables |
+| `GROUP BY` | League and team aggregation |
+| `HAVING` | Minimum-match eligibility rules |
+| `COUNT`, `SUM`, `AVG` | Statistical summaries |
+| `MIN`, `MAX`, `ROUND` | Descriptive analysis |
+| `CASE WHEN` | Match outcomes and point calculations |
+| `UNION ALL` | Home and away team perspectives |
+| `WITH` / CTEs | Multi-stage analytical queries |
+| `ROW_NUMBER()` | First qualifying player records |
+| `LAG()` | Previous-season comparisons |
+| `PARTITION BY` | Group-specific window calculations |
+| `STDDEV_SAMP()` | Team performance consistency |
+| `CREATE TABLE` | Elo model data structures |
+| `CREATE VIEW` | Tactical intelligence layer |
+| PL/pgSQL | Chronological Elo processing |
+| Date Functions | Player age and match chronology |
+
+### Example: Window Function
+
+```sql
+SELECT
+    team_api_id,
+    season,
+    points_per_match,
+    LAG(points_per_match) OVER (
+        PARTITION BY team_api_id
+        ORDER BY season
+    ) AS previous_season_ppm
+FROM seasonal_performance;
+```
+
+This example illustrates how window functions compare a team's current season with its previous recorded season.
+
+---
+
+## 📁 Repository Structure
+
+```text
+European-Football-Intelligence/
+│
+├── README.md
+│
+├── original_backup.sql
+│
+├── sql/
+│   ├── 01_setup_and_validation.sql
+│   ├── 02_league_and_team_analysis.sql
+│   ├── 03_player_analysis.sql
+│   ├── 04_elo_and_upsets.sql
+│   ├── 05_tactical_intelligence.sql
+│   └── 06_leicester_paradox.sql
+│
+└── docs/
+    ├── methodology.md
+    └── audit_notes.md
+```
+
+### SQL Modules
+
+| Module | Purpose | Blocks |
+|---|---|---|
+| Setup and Validation | Database structure, integrity and dates | #01–#14 |
+| League and Team Analysis | Home advantage, standings and performance | #15–#28 |
+| Player Analysis | Ratings and player development | #29–#36 |
+| Elo and Upsets | Elo modelling and unexpected outcomes | #37–#41 |
+| Tactical Intelligence | Tactical attributes and model comparisons | #42–#44 |
+| Leicester Paradox | Momentum and retrospective evaluation | #45–#53 |
+
+The original exploratory SQL script is preserved as `original_backup.sql` for traceability.
+
+---
+
+## 🗄 Dataset and Setup
+
+### Data Source
+
+**European Soccer Database**
+
+Publisher: Hugo Mathien
+
+Dataset URL:
+https://www.kaggle.com/datasets/hugomathien/soccer
+
+The source dataset includes match results, league information, teams, players, player ratings and tactical attributes.
+
+The repository contains analytical SQL code rather than a copy of the original dataset.
+
+### Requirements
+
+- PostgreSQL
+- DBeaver or another PostgreSQL-compatible SQL client
+- European Soccer Database imported into PostgreSQL
+
+### Required Tables
+
+```text
+country
+league
+team
+player
+matches
+player_attributes
+team_attributes
+```
+
+The published dataset is distributed as a SQLite database (`database.sqlite`), so it must be converted or imported into PostgreSQL before running this project's SQL.
+
+The repository does not currently include an automated migration script.
+
+### Recommended Execution Order
+
+1. Download the European Soccer Database from Kaggle.
+2. Import or migrate the tables into PostgreSQL.
+3. Verify table names, date types and database integrity.
+4. Review `sql/01_setup_and_validation.sql` before executing any schema-changing commands.
+5. Run analytical queries from modules 02 and 03 individually.
+6. Review and execute the Elo initialization in module 04 before running dependent analyses.
+7. Create the tactical intelligence view in module 05 when required.
+8. Execute the Leicester Paradox queries in module 06.
+
+**Safety note:** Some SQL blocks create constraints, tables or views. Do not execute all files blindly against an existing database.
+
+For a live demonstration in DBeaver, select an individual analytical query and execute it using `Ctrl+Enter`.
+
+---
+
+## 🔬 Methodology and Limitations
+
+### Key Definitions
+
+| Term | Definition |
+|---|---|
+| PPG / PPM | League points divided by matches played |
+| Momentum | Last-ten PPM minus first-ten PPM |
+| Breakthrough | Next-season PPM improvement of at least 0.5 |
+| Elo Expected Score | Model-estimated expected result on a 0–1 scoring scale |
+| Giant Killer Overperformance | Actual Elo score minus expected Elo score against stronger opponents |
+
+### Research Limitations
+
+1. The dataset covers historical seasons and does not represent current football performance.
+2. FIFA ratings are game-based attributes, not objective measurements of football ability.
+3. Elo results depend on selected model parameters.
+4. Tactical associations should not be interpreted as causal effects.
+5. Retrospective momentum analysis is not equivalent to a validated real-time prediction model.
+6. Historical comparisons can be affected by missing data, eligibility rules and differences between leagues.
+
+### Validation Status
+
+The project was organized into numbered SQL blocks for inspection and testing.
+
+In the author's PostgreSQL environment:
+
+- 49 analytical statements passed a batch `EXPLAIN` planning check.
+- Structural and Elo integrity checks were reported to pass.
+- Corrected Giant Killer-related queries #40 and #41 were reported to execute successfully.
+
+These checks do not establish that the project can be rebuilt end-to-end on a fresh database without additional setup, nor do they independently verify every analytical result.
+
+A complete clean-database reproducibility test remains outstanding.
+
+For more details, see:
+
+- [Methodology](docs/methodology.md)
+- [Audit Notes](docs/audit_notes.md)
+
+---
+
+## 🎯 Conclusion
+
+European Football Intelligence demonstrates how PostgreSQL can be used to investigate complex football questions beyond basic match statistics.
+
+The analysis identifies differences in home advantage, compares long-term team performance, examines player ratings, detects surprising match outcomes and evaluates historical patterns of underdog overperformance.
+
+The Leicester Paradox provides a deeper research case by examining whether improving form at the end of one season is associated with stronger results in the next.
+
+Together, these analyses demonstrate the use of relational SQL, common table expressions, window functions, statistical aggregation and procedural database programming in a practical sports analytics project.
+
+---
+
+### Data Attribution
+
+Football data: [European Soccer Database — Hugo Mathien](https://www.kaggle.com/datasets/hugomathien/soccer).
+
+Please refer to the dataset publisher's documentation for original data sources, licensing and usage restrictions.
+
+### Project Status
+
+University SQL analytics project — organized for review and live demonstration.
+
